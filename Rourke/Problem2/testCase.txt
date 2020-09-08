@@ -1,0 +1,9 @@
+Test case:
+
+Ghci q2.hs
+*Main> main
+2
+ppeeefpffeefe
+pefepeefe
+pfefe
+pefef

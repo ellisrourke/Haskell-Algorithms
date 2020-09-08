@@ -1,67 +1,43 @@
-approx
-  :: Fractional a
-  => (a1 -> a) -> [a1] -> [a] -> a
-  
-approx f xs ws =
-  sum [ w * f x | (x, w) <- zip xs ws ]
+{- base function to be integrated -}
+func :: Double -> Double
+func x = log x
 
- 
-integrateClosed
-  :: Fractional a
-  => a -> [a] -> (a -> a) -> a -> a -> Int -> a
-integrateClosed v vs f a b n = approx f xs ws * h / v
-  where
-    m = fromIntegral (length vs - 1) * n
-    h = (b - a) / fromIntegral m
-    ws = overlap n vs
-    xs =
-      [ a + h * fromIntegral i | i <- [0 .. m] ]
- 
-overlap
-  :: Num a
-  => Int -> [a] -> [a]
-overlap n [] = []
-overlap n (x:xs) = x : inter n xs
-  where
-    inter 1 ys = ys
-    inter n [] = x : inter (n - 1) xs
-    inter n [y] = (x + y) : inter (n - 1) xs
-    inter n (y:ys) = y : inter n ys
- 
-uncurry4 :: (t1 -> t2 -> t3 -> t4 -> t) -> (t1, t2, t3, t4) -> t
-uncurry4 f ~(a, b, c, d) = f a b c d
- 
--- TEST ----------------------------------------------------------------------
+{- recursively calculate final output based on the simpsons 1/3 rule -}
+calcResult :: Int -> Int -> Double -> [Double] -> Double
+calcResult i n result fx | (i > n) = (result)
+                         | (i == 0 || i == n) = calcResult (i+1) n (result + fx!!i) fx
+                         | (i `mod` 2 /= 0) = calcResult (i+1) n (result + 4*fx!!i) fx
+                         | otherwise = calcResult (i+1) n (result + 2*fx!!i) fx
+                        
+{- main program loop -}
 
-ms = [("simpson", integrateClosed 3 [1, 4, 1])]
- 
-integrations :: (Fractional a, Num t, Num t1, Num t2)
-             => [(String, (a -> a, t, t1, t2))]
+main :: IO()
+main = do
+    {- read inputs from user -}
 
-integrations =
-  [ ("x^3", ((^ 3), 0, 1, 100))
-  , ("1/x", ((1 /), 1, 100, 1000))
-  , ("x", (id, 0, 5000, 500000))
-  , ("x", (id, 0, 6000, 600000))
-  ]
- 
-main :: IO ()
-main =
-  mapM_
-    (\(s, e@(_, a, b, n)) -> do
-       putStrLn
-         (concat
-            [ indent 20 ("f(x) = " ++ s)
-            , show [a, b]
-            , "  ("
-            , show n
-            , " approximations)"
-            ])
-       mapM_
-         (\(s, integration) ->
-             putStrLn (indent 20 (s ++ ":") ++ show (uncurry4 integration e)))
-         ms
-       putStrLn [])
-    integrations
-  where
-    indent n = take n . (++ replicate n ' ')
+    putStr "input n: "
+    nTemp <- getLine
+    let n = read nTemp :: Int
+    let nDouble = read nTemp :: Double
+
+    
+    putStr "input lower limit: "
+    llTemp <- getLine
+    let ll = read llTemp :: Double
+    
+    putStr "input upper limit: "
+    ulTemp <- getLine
+    let ul = read ulTemp :: Double
+
+    {- calculate value of h -}
+    let h = (ul - ll)/nDouble
+
+    {- generate list of values to be integrated with based on the n number rectangles-}
+    let xTemp = map (*h)[0..nDouble]
+    let x = map (+ll) xTemp
+    let fx = map func x 
+    
+    {- calculate and display final result -}
+    let y = calcResult 0 n 0 fx
+    print(y*(h/3))
+    

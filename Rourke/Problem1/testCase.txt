@@ -1,0 +1,8 @@
+Test case:
+
+Ghci q1.hs
+*Main> main
+N = 5
+Lower limit = 2
+Upper limit = 9
+= 10.396026192067163
